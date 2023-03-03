@@ -7,7 +7,10 @@ output: html_document
 
 ```{r setup, include=FALSE}
 library(tidyverse)
-
+library(skimr)
+library(survival)
+library(survminer)
+library(fitdistrplus)
 ds = read_csv("./data/disney_plus_titles.csv")
 ```
 ```{r}
@@ -17,4 +20,48 @@ movies = ds %>%
 movies = movies %>%
   mutate(duration = as.integer(str_replace(movies$duration, " min","" )))
 ```
+```{r}
+km = survfit(Surv(movies$duration)~movies$rating)
+
+ggsurvplot(fit = km, data = movies)
+```
+```{r}
+movies %>%
+  group_by(rating)%>%
+  summarize(n=n())
+
+
+movies = movies %>%
+  mutate(comb_rating = case_when(
+    rating %in% c("TV-Y", "TV-Y7", "TV-Y7-FV") ~ "TV-Y",
+    rating %in% c("G", "TV-G") ~ "G",
+    rating %in% c("PG", "TV-PG") ~ "PG",
+    rating %in% c("PG-13", "TV-14") ~ "PG-13"
+  ))
+
+km2 = survfit(Surv(movies$duration)~strata(movies$comb_rating))
+
+ggsurvplot(fit = km2, data = movies)
+
+ggsurvplot(fit=km2, data=movies, risk.table = F, conf.int=T) +
+    labs(
+        title="KM Survival Curves For Disney Plus Movies By Rating",
+        subtitle = "By Rating",
+        x="Hours"
+    ) 
+```
+```{r}
+reg = survreg(Surv(movies$duration)~strata(movies$comb_rating))
+summary(reg)
+```
+```{r}
+print(paste0("G:", 1/0.789))
+print(paste0("PG:", 1/0.415))
+print(paste0("PG-13:", 1/0.506))
+print(paste0("TV-Y:", 1/1.348))
+```
+the $\beta$ for TV-Y is 0.742 <br / > 
+the $\beta$ for G is 1.267 <br / >
+the $\beta$ for PG is 2.41 <br / >
+the $\beta$ for PG-13 is 1.98 
 
