@@ -54,6 +54,12 @@ ggsurvplot(fit=km2, data=movies, risk.table = F, conf.int=T) +
 reg = survreg(Surv(movies$duration)~strata(movies$comb_rating))
 summary(reg)
 ```
+
+```{r}
+reg2 = survreg(Surv(movies$duration)~movies$comb_rating)
+summary(reg2)
+```
+
 ```{r}
 print(paste0("G:", 1/0.789))
 print(paste0("PG:", 1/0.415))
@@ -106,5 +112,14 @@ ggsurvplot(fit=km4, data=movies, risk.table = F, conf.int=T) +
         title="KM Survival Curves For Disney Plus Movies",
         x="Hours"
     ) 
+```
+```{r}
+theaters = movies %>%
+  filter(type2 == "Made for Theaters")
+```
+
+```{r}
+reg3 = survreg(Surv(theaters$duration)~ theaters$release_year + theaters$rating)
+summary(reg3)
 ```
 
