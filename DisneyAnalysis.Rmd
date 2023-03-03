@@ -84,4 +84,27 @@ ggsurvplot(fit=km3, data=movies, risk.table = F, conf.int=T) +
         x="Hours"
     ) 
 ```
+```{r}
+unique(movies$release_year)
+
+movies = movies %>% mutate(bin_year = cut(release_year, breaks=c(1920,1950,1970, 1990, 2000, 2010, 2022)))
+
+movies = movies %>%
+  mutate(bin_year = case_when(
+    bin_year == "(2.01e+03,2.02e+03]" ~ "2011 to 2022",
+    bin_year == "(2e+03,2.01e+03]" ~ "2001 to 2010",
+    bin_year == "(1.99e+03,2e+03]" ~ "1991 to 2000",
+    bin_year == "(1.97e+03,1.99e+03]" ~ "1971 to 1990",
+    bin_year == "(1.95e+03,1.97e+03]" ~ "1951 to 1970",
+    bin_year == "(1.92e+03,1.95e+03]" ~ "1920 to 1950"
+  ))
+
+km4 = survfit(Surv(movies$duration)~movies$bin_year)
+
+ggsurvplot(fit=km4, data=movies, risk.table = F, conf.int=T) +
+    labs(
+        title="KM Survival Curves For Disney Plus Movies",
+        x="Hours"
+    ) 
+```
 
