@@ -65,3 +65,23 @@ the $\beta$ for G is 1.267 <br / >
 the $\beta$ for PG is 2.41 <br / >
 the $\beta$ for PG-13 is 1.98 
 
+```{r}
+reg2 = survreg(Surv(movies$duration)~movies$comb_rating)
+summary(reg2)
+```
+```{r}
+movies = movies %>%
+  mutate(type2 = case_when(
+    rating = str_detect(rating, "TV") ~ "Made for TV",
+    TRUE ~ "Made for Theaters"
+  ))
+
+km3 = survfit(Surv(movies$duration)~strata(movies$type2))
+
+ggsurvplot(fit=km3, data=movies, risk.table = F, conf.int=T) +
+    labs(
+        title="KM Survival Curves For Disney Plus Movies",
+        x="Hours"
+    ) 
+```
+
