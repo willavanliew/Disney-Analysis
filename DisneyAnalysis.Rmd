@@ -10,19 +10,11 @@ library(tidyverse)
 
 ds = read_csv("./data/disney_plus_titles.csv")
 ```
+```{r}
+movies = ds %>%
+  filter(type == "Movie")
 
-
-
-```{r cars}
-summary(cars)
+movies = movies %>%
+  mutate(duration = as.integer(str_replace(movies$duration, " min","" )))
 ```
 
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
