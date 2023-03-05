@@ -23,13 +23,23 @@ movies = movies %>%
 ```{r}
 km = survfit(Surv(movies$duration)~movies$rating)
 
-ggsurvplot(fit = km, data = movies)
+ggsurvplot(fit = km, 
+           data = movies, 
+           palette="lancet",
+           risk.table = F,
+           conf.int=F,
+           legend = "bottom", 
+           legend.title = "Rating",
+           legend.labs = c("G", "PG","PG-13","TV-14","TV-G","TV-PG","TV-Y","TV-Y7","TV-Y7-FV"))+
+  labs(title="Film Length Survival Curve by Rating",
+       x="Film length (mins)") 
+
+survdiff(Surv(movies$duration)~movies$rating)
 ```
 ```{r}
 movies %>%
   group_by(rating)%>%
-  summarize(n=n())
-
+  summarize(Number_of_films=n())
 
 movies = movies %>%
   mutate(comb_rating = case_when(
@@ -41,23 +51,85 @@ movies = movies %>%
 
 km2 = survfit(Surv(movies$duration)~strata(movies$comb_rating))
 
-ggsurvplot(fit = km2, data = movies)
+survdiff(Surv(movies$duration)~movies$comb_rating)
 
-ggsurvplot(fit=km2, data=movies, risk.table = F, conf.int=T) +
-    labs(
-        title="KM Survival Curves For Disney Plus Movies By Rating",
-        subtitle = "By Rating",
-        x="Hours"
-    ) 
+
+ggsurvplot(fit=km2, 
+           data=movies,            
+           palette="lancet",
+           risk.table = F,
+           conf.int=T,
+           legend = "bottom", 
+           legend.title = "Rating",
+           legend.labs = c("G", "PG","PG-13","TV-Y")) +
+  labs(title="Combined Ratings Film Length Survival Curve",
+       x="Film length (mins)")
 ```
 ```{r}
-reg = survreg(Surv(movies$duration)~strata(movies$comb_rating))
-summary(reg)
+#myMod=survreg(surv2~ds$grp+ds$gender+ds$ageGroup4,dist="weibull")
+
+
+#summary(myMod)
+
+#AIC(myMod)
+
+weibullreg = survreg(Surv(movies$duration)~strata(movies$comb_rating),dist="weibull")
+summary(weibullreg)
+
+
+logreg = survreg(Surv(movies$duration)~strata(movies$comb_rating),dist="lognormal")
+summary(logreg)
+
+expreg = survreg(Surv(movies$duration)~movies$comb_rating,dist="exponential")
+summary(expreg)
+
+gausreg = survreg(Surv(movies$duration)~strata(movies$comb_rating),dist="gaussian")
+
+
+AIC(weibullreg)
+AIC(gausreg)
+AIC(logreg)
+AIC(expreg)
+
+
+BIC(weibullreg)
+BIC(gausreg)
+BIC(logreg)
+BIC(expreg)
+
+
+#weibull was the best fit
+
 ```
 
 ```{r}
 reg2 = survreg(Surv(movies$duration)~movies$comb_rating)
 summary(reg2)
+```
+```{r}
+weibullreg2 = survreg(Surv(movies$duration)~movies$comb_rating,dist="weibull")
+summary(weibullreg2)
+
+logreg2 = survreg(Surv(movies$duration)~movies$comb_rating,dist="lognormal")
+summary(logreg2)
+
+expreg2 = survreg(Surv(movies$duration)~movies$comb_rating,dist="exponential")
+summary(expreg2)
+
+gausreg2 = survreg(Surv(movies$duration)~movies$comb_rating,dist="gaussian")
+
+
+AIC(weibullreg2)
+AIC(logreg2)
+AIC(expreg2)
+AIC(gausreg2)
+
+BIC(weibullreg2)
+BIC(gausreg2)
+BIC(logreg2)
+BIC(expreg2)
+
+#weibull was the best fit
 ```
 
 ```{r}
@@ -84,11 +156,18 @@ movies = movies %>%
 
 km3 = survfit(Surv(movies$duration)~strata(movies$type2))
 
-ggsurvplot(fit=km3, data=movies, risk.table = F, conf.int=T) +
-    labs(
-        title="KM Survival Curves For Disney Plus Movies",
-        x="Hours"
-    ) 
+survdiff(Surv(movies$duration)~movies$type2)
+
+ggsurvplot(fit=km3, 
+           data=movies,            
+           palette="lancet",
+           risk.table = F,
+           conf.int=T,
+           legend = "bottom", 
+           legend.title = "Debut type",
+           legend.labs = c("Made for TV", "Made for Theaters")) +
+  labs(title="Film Length Survival Curve by Film Debut Type",
+       x="Film length (mins)") 
 ```
 ```{r}
 unique(movies$release_year)
@@ -107,19 +186,67 @@ movies = movies %>%
 
 km4 = survfit(Surv(movies$duration)~movies$bin_year)
 
-ggsurvplot(fit=km4, data=movies, risk.table = F, conf.int=T) +
-    labs(
-        title="KM Survival Curves For Disney Plus Movies",
-        x="Hours"
-    ) 
+survdiff(Surv(movies$duration)~movies$type2)
+
+
+ggsurvplot(fit=km4, data=movies,
+        palette="lancet",
+           risk.table = F,
+           conf.int=F,
+           legend = "bottom", 
+           legend.title = "Release period",
+           legend.labs = c("1920-1950", "1951-1970","1971-1990","1991-2000","2001-2010","2011-2022")) +
+  labs(title="Film Length Survival Curve by Release Period",
+       x="Film length (mins)")
 ```
 ```{r}
 theaters = movies %>%
   filter(type2 == "Made for Theaters")
 ```
-
 ```{r}
-reg3 = survreg(Surv(theaters$duration)~ theaters$release_year + theaters$rating)
-summary(reg3)
+weibullreg3 = survreg(Surv(theaters$duration)~ theaters$release_year + theaters$rating,dist="weibull")
+summary(weibullreg3)
+
+logreg3 = survreg(Surv(theaters$duration)~ theaters$release_year + theaters$rating,dist="lognormal")
+summary(logreg3)
+
+expreg3 = survreg(Surv(theaters$duration)~ theaters$release_year + theaters$rating,dist="exponential")
+
+summary(expreg3)
+
+gausreg3 = survreg(Surv(theaters$duration)~ theaters$release_year + theaters$rating,dist="gaussian")
+
+
+AIC(weibullreg3)
+AIC(gausreg3)
+AIC(logreg3)
+AIC(expreg3)
+
+
+BIC(weibullreg3)
+BIC(gausreg3)
+BIC(logreg3)
+BIC(expreg3)
+
+
+#gaussian was the best fit
 ```
 
+```{r}
+reg5 = survfit(Surv(movies$duration)~movies$release_year)
+summary(reg5)
+
+```
+
+As the release year increases the duration increases by 0.0056
+```{r}
+reg4 = survreg(Surv(movies$duration)~movies$release_year)
+ggsurvplot(data = movies, fit = reg4)
+```
+
+```{r}
+reg_rel_year = survreg(Surv(theaters$duration)~ theaters$release_year)
+summary(reg_rel_year)
+
+```
+The duration of movies (meant for theatrical release)
